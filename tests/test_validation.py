@@ -83,3 +83,12 @@ def test_validation_produces_replayable_trace_with_results() -> None:
     assert event["event_type"] == "unit_delta_applied"
     assert "validation_results" in event["changes"]
     assert len(event["changes"]["validation_results"]) == len(result.context_map["active_hypotheses"])
+
+def test_print_full_trace() -> None:
+    field = build_competed_field()
+    runtime = SCRRuntime(units=[ValidationUnit()], config=RuntimeConfig(max_ticks=5))
+    result = runtime.run(field)
+
+    print("\nFULL TRACE:")
+    for entry in result.trace:
+        print(entry)

@@ -108,3 +108,5 @@ class ValidationUnit(CompetenceUnit):
         if "subtraction" in summary or "addition" in summary or "wrong operator" in issue:
             return code.replace("return a - b", "return a + b", 1)
         return code
+
+    
