@@ -44,6 +44,8 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Aggiunti test pytest per file JSON replay, serializzabilita, trace, outcome e selected hypothesis.
 - Implementati `ReplayLoader` e `ReplayValidator` per caricare replay JSON e verificarne la coerenza minima.
 - Aggiunti test pytest per caricamento replay e failure modes di validazione.
+- Implementato `L1LearningUpdater` come update post-run da replay validati verso `learning_state.json`.
+- Aggiunti test pytest per creazione file stato, reward/penalty, clamp e determinismo.
 
 ## Inferred Scope
 

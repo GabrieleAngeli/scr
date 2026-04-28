@@ -53,6 +53,7 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - `ConsolidationUnit` deriva l'esito finale senza rieseguire test: `SUCCESS`, `REOPENED` o `FAILED_NO_VALID_HYPOTHESIS`, con selezione esplicita della prima ipotesi passata.
 - `ReplayRecorder` e separato dal runtime decisionale e persiste solo lo stato finale necessario al replay in formato JSON.
 - `ReplayLoader` e `ReplayValidator` restano fuori dal runtime: leggono e controllano replay esistenti senza rieseguire la pipeline o alterare il campo.
+- `L1LearningUpdater` opera solo post-run, usando replay validati per aggiornare uno stato locale deterministico senza modificare runtime o unit durante la run.
 
 ## Open Questions
 
