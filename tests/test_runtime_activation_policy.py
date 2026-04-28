@@ -33,7 +33,7 @@ def test_activation_policy_does_not_activate_all_units_on_each_tick() -> None:
     policy_events = [entry for entry in result.trace if entry["unit"] == "runtime" and entry["event_type"] == "activation_policy"]
 
     assert policy_events
-    assert all(len(event["changes"]["selected_units"]) <= 1 for event in policy_events)
+    assert all(isinstance(event["changes"]["selected_unit"], (str, type(None))) for event in policy_events)
 
 
 def test_activation_policy_can_reduce_tick_count_for_prepopulated_field() -> None:
@@ -75,7 +75,9 @@ def test_trace_contains_only_units_really_activated() -> None:
     selected_units = []
     for event in result.trace:
         if event["unit"] == "runtime" and event["event_type"] == "activation_policy":
-            selected_units.extend(event["changes"]["selected_units"])
+            selected_unit = event["changes"]["selected_unit"]
+            if selected_unit is not None:
+                selected_units.append(selected_unit)
 
     activated_unit_events = [
         entry["unit"]
@@ -85,3 +87,33 @@ def test_trace_contains_only_units_really_activated() -> None:
 
     assert activated_unit_events
     assert set(activated_unit_events).issubset(set(selected_units))
+
+
+def test_tick_count_is_not_greater_than_units_really_needed() -> None:
+    task_path = Path("tasks/task_001").resolve()
+    field = FieldState(task_signal={"task_id": "task_001", "task_path": str(task_path)})
+    runtime = build_all_units_runtime(max_ticks=10)
+
+    result = runtime.run(field)
+    activated_units = [
+        entry["unit"]
+        for entry in result.trace
+        if entry["unit"] != "runtime" and entry["event_type"] == "unit_delta_applied"
+    ]
+
+    assert result.tick <= len(activated_units)
+
+
+def test_trace_shows_sequential_activation() -> None:
+    task_path = Path("tasks/task_001").resolve()
+    field = FieldState(task_signal={"task_id": "task_001", "task_path": str(task_path)})
+    runtime = build_all_units_runtime(max_ticks=10)
+
+    result = runtime.run(field)
+    policy_events = [entry for entry in result.trace if entry["unit"] == "runtime" and entry["event_type"] == "activation_policy"]
+    unit_events = [entry for entry in result.trace if entry["unit"] != "runtime" and entry["event_type"] == "unit_delta_applied"]
+
+    assert len(policy_events) == len(unit_events)
+    for policy_event, unit_event in zip(policy_events, unit_events):
+        assert policy_event["tick"] == unit_event["tick"]
+        assert policy_event["changes"]["selected_unit"] == unit_event["unit"]

@@ -13,12 +13,11 @@ class RuntimeConfig:
 
 
 class ActivationPolicy:
-    def select_units(self, field: FieldState, units: list[CompetenceUnit]) -> list[CompetenceUnit]:
-        available = {unit.name: unit for unit in units}
-        selected_name = self._select_unit_name(field, set(available))
+    def select_next_unit(self, field: FieldState, available_units: dict[str, CompetenceUnit]) -> CompetenceUnit | None:
+        selected_name = self._select_unit_name(field, set(available_units))
         if selected_name is None:
-            return []
-        return [available[selected_name]]
+            return None
+        return available_units[selected_name]
 
     @staticmethod
     def _select_unit_name(field: FieldState, available_unit_names: set[str]) -> str | None:
@@ -48,17 +47,25 @@ class SCRRuntime:
     units: list[CompetenceUnit]
     config: RuntimeConfig = field(default_factory=RuntimeConfig)
     activation_policy: ActivationPolicy = field(default_factory=ActivationPolicy)
+    unit_by_name: dict[str, CompetenceUnit] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.unit_by_name = {unit.name: unit for unit in self.units}
 
     def run(self, field: FieldState) -> FieldState:
-        while field.tick < self.config.max_ticks:
-            field.tick += 1
-            active_deltas = self.run_tick(field)
-            if field.outcome is not None or not active_deltas:
+        while True:
+            if field.outcome is not None:
                 break
+            if field.tick >= self.config.max_ticks:
+                break
+            selected_unit = self.activation_policy.select_next_unit(field, self.unit_by_name)
+            if selected_unit is None:
+                break
+            field.tick += 1
+            self.run_tick(field, selected_unit)
         return field
 
-    def run_tick(self, field: FieldState) -> list[FieldDelta]:
-        deltas: list[FieldDelta] = []
+    def run_tick(self, field: FieldState, selected_unit: CompetenceUnit) -> FieldDelta | None:
         field.trace.append(
             {
                 "seq": self._next_seq(field),
@@ -71,34 +78,45 @@ class SCRRuntime:
             }
         )
 
-        selected_units = self.activation_policy.select_units(field, self.units)
         field.trace.append(
             {
                 "seq": self._next_seq(field),
                 "tick": field.tick,
                 "unit": "runtime",
                 "event_type": "activation_policy",
-                "reason": "units selected from field state",
+                "reason": "next unit selected from field state",
                 "input_summary": {
-                    "available_units": [unit.name for unit in self.units],
+                    "available_units": list(self.unit_by_name),
                 },
                 "changes": {
-                    "selected_units": [unit.name for unit in selected_units],
+                    "selected_unit": selected_unit.name,
                 },
             }
         )
 
-        for unit in selected_units:
-            activation = unit.activation(field)
-            field.activation_levels[unit.name] = activation
-            if activation < unit.threshold:
-                continue
-            deltas.append(unit.transform(field))
+        activation = selected_unit.activation(field)
+        field.activation_levels[selected_unit.name] = activation
+        if activation < selected_unit.threshold:
+            field.trace.append(
+                {
+                    "seq": self._next_seq(field),
+                    "tick": field.tick,
+                    "unit": "runtime",
+                    "event_type": "unit_skipped",
+                    "reason": "selected unit was below activation threshold",
+                    "input_summary": {
+                        "selected_unit": selected_unit.name,
+                        "activation": activation,
+                        "threshold": selected_unit.threshold,
+                    },
+                    "changes": {},
+                }
+            )
+            return None
 
-        for delta in deltas:
-            self.apply_delta(field, delta)
-
-        return deltas
+        delta = selected_unit.transform(field)
+        self.apply_delta(field, delta)
+        return delta
 
     @staticmethod
     def apply_delta(field: FieldState, delta: FieldDelta) -> None:

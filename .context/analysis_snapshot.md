@@ -60,6 +60,7 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - `ApplicationThreadBenchmark` misura il valore SCR su un thread applicativo completo, con delta di quality/cost/value rispetto alla baseline, senza alterare benchmark o unit esistenti.
 - Il corpus task ora include scenari piu complessi di bug logici: rami annidati, retry/timeout e stato condiviso, utili per benchmark oltre il micro-fix aritmetico.
 - Il runtime usa ora una `ActivationPolicy` esplicita: gating sequenziale delle unita in base al campo, con trace di selezione e senza modifiche alle unit stesse.
+- Il runtime non itera piu su tutte le unita candidate: per ogni tick seleziona una sola unita, applica un solo delta e si ferma quando non c'e piu una prossima unita o quando `outcome` e definito.
 - `CompetitionUnit` non ranka piu solo per confidence: aggiunge uno score derivato da arithmetic match, allineamento tra issue e codice, semplicita del fix e penalizzazione della genericita.
 
 ## Open Questions

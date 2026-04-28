@@ -57,6 +57,7 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Ogni task include `bug.py`, `test_bug.py` e `meta.txt` pensati per mettere in difficolta una baseline lineare.
 - Introdotta `ActivationPolicy` nel runtime SCR per attivare solo le unita necessarie in base allo stato del campo.
 - Aggiunti test runtime dedicati su attivazione selettiva, riduzione tick e trace delle sole unita attivate.
+- Corretto il runtime per fare vero gating: una sola unita per tick tramite `ActivationPolicy.select_next_unit`.
 - Migliorata `CompetitionUnit` con scoring informativo basato su rilevanza sul codice, tipo di fix e penalita per ipotesi generiche.
 - Il ranking delle ipotesi ora usa `score` calcolato e mantiene massimo 2 ipotesi attive.
 
