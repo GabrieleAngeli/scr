@@ -12,16 +12,48 @@ class RuntimeConfig:
     max_ticks: int = 1
 
 
+class ActivationPolicy:
+    def select_units(self, field: FieldState, units: list[CompetenceUnit]) -> list[CompetenceUnit]:
+        available = {unit.name: unit for unit in units}
+        selected_name = self._select_unit_name(field, set(available))
+        if selected_name is None:
+            return []
+        return [available[selected_name]]
+
+    @staticmethod
+    def _select_unit_name(field: FieldState, available_unit_names: set[str]) -> str | None:
+        if not field.context_map and "input_structuring" in available_unit_names:
+            return "input_structuring"
+        if field.context_map.get("code_artifact") is None and "standardization" in available_unit_names:
+            return "standardization"
+        if not field.hypothesis_pool and "divergence" in available_unit_names:
+            return "divergence"
+        if field.hypothesis_pool and not field.context_map.get("active_hypotheses") and "competition" in available_unit_names:
+            return "competition"
+        if (
+            field.context_map.get("active_hypotheses")
+            and "validation_results" not in field.context_map
+            and "validation" in available_unit_names
+        ):
+            return "validation"
+        if "validation_results" in field.context_map and field.outcome is None and "consolidation" in available_unit_names:
+            return "consolidation"
+        if not field.hypothesis_pool and field.outcome is None and "consolidation" in available_unit_names:
+            return "consolidation"
+        return None
+
+
 @dataclass
 class SCRRuntime:
     units: list[CompetenceUnit]
     config: RuntimeConfig = field(default_factory=RuntimeConfig)
+    activation_policy: ActivationPolicy = field(default_factory=ActivationPolicy)
 
     def run(self, field: FieldState) -> FieldState:
         while field.tick < self.config.max_ticks:
             field.tick += 1
             active_deltas = self.run_tick(field)
-            if active_deltas:
+            if field.outcome is not None or not active_deltas:
                 break
         return field
 
@@ -39,7 +71,24 @@ class SCRRuntime:
             }
         )
 
-        for unit in self.units:
+        selected_units = self.activation_policy.select_units(field, self.units)
+        field.trace.append(
+            {
+                "seq": self._next_seq(field),
+                "tick": field.tick,
+                "unit": "runtime",
+                "event_type": "activation_policy",
+                "reason": "units selected from field state",
+                "input_summary": {
+                    "available_units": [unit.name for unit in self.units],
+                },
+                "changes": {
+                    "selected_units": [unit.name for unit in selected_units],
+                },
+            }
+        )
+
+        for unit in selected_units:
             activation = unit.activation(field)
             field.activation_levels[unit.name] = activation
             if activation < unit.threshold:

@@ -1,0 +1,67 @@
+{
+  "baseline_outcome": "SUCCESS",
+  "baseline_result": {
+    "activated_competences": [
+      "baseline_runner"
+    ],
+    "efficiency_score": 0.8333,
+    "outcome": "SUCCESS",
+    "quality_score": 1.0,
+    "resource_cost_score": 1.2,
+    "storage_footprint_estimate": 393,
+    "unused_competences": [],
+    "validation_time_ms": 598.941
+  },
+  "baseline_validation_time_ms": 598.941,
+  "comparison": {
+    "scores": {
+      "BASELINE": 0.8333,
+      "REFERENCE_MODEL": 0.2375,
+      "SCR": 0.3125
+    },
+    "winner": "BASELINE"
+  },
+  "reference_model_result": {
+    "activated_competences": [
+      "reasoning",
+      "code_repair",
+      "test_awareness"
+    ],
+    "efficiency_score": 0.2375,
+    "outcome": "SUCCESS",
+    "quality_score": 0.95,
+    "resource_cost_score": 4.0,
+    "storage_footprint_estimate": 4096,
+    "task_id": "task_001",
+    "unused_competences": [
+      "tool_use"
+    ]
+  },
+  "scr_hypothesis_count": 8,
+  "scr_outcome": "SUCCESS",
+  "scr_result": {
+    "activated_competences": [
+      "input_structuring",
+      "standardization",
+      "divergence",
+      "competition",
+      "validation",
+      "consolidation"
+    ],
+    "efficiency_score": 0.3125,
+    "hypothesis_count": 8,
+    "outcome": "SUCCESS",
+    "quality_score": 1.0,
+    "resource_cost_score": 3.2,
+    "storage_footprint_estimate": 12112,
+    "ticks": 6,
+    "unused_competences": [],
+    "validated_hypothesis_count": 2,
+    "validation_time_ms": 1143.837
+  },
+  "scr_ticks": 6,
+  "scr_validated_hypothesis_count": 2,
+  "scr_validation_time_ms": 1143.837,
+  "task_id": "task_001",
+  "winner": "BASELINE"
+}
