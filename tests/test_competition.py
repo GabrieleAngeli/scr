@@ -22,14 +22,14 @@ def build_diverged_field() -> FieldState:
     return divergence_runtime.run(standardization_runtime.run(input_runtime.run(field)))
 
 
-def test_competition_orders_hypotheses_by_confidence() -> None:
+def test_competition_orders_hypotheses_by_score() -> None:
     field = build_diverged_field()
     runtime = SCRRuntime(units=[CompetitionUnit()], config=RuntimeConfig(max_ticks=4))
 
     result = runtime.run(field)
-    confidences = [float(hypothesis["confidence"]) for hypothesis in result.hypothesis_pool]
+    scores = [float(hypothesis["score"]) for hypothesis in result.hypothesis_pool]
 
-    assert confidences == sorted(confidences, reverse=True)
+    assert scores == sorted(scores, reverse=True)
 
 
 def test_competition_keeps_at_most_two_active_hypotheses() -> None:
@@ -73,6 +73,25 @@ def test_competition_trace_is_replayable() -> None:
     assert event["event_type"] == "unit_delta_applied"
     assert "active_hypotheses" in event["changes"]
     assert "pruned_hypotheses" in event["changes"]
+
+
+def test_competition_selects_more_relevant_hypotheses() -> None:
+    field = build_diverged_field()
+    runtime = SCRRuntime(units=[CompetitionUnit()], config=RuntimeConfig(max_ticks=4))
+
+    result = runtime.run(field)
+
+    assert result.context_map["active_hypotheses"][0] == "div-001"
+    assert result.context_map["active_hypotheses"][1] in {"div-004", "div-006"}
+
+
+def test_competition_validated_hypothesis_count_does_not_increase() -> None:
+    field = build_diverged_field()
+    runtime = SCRRuntime(units=[CompetitionUnit()], config=RuntimeConfig(max_ticks=4))
+
+    result = runtime.run(field)
+
+    assert len(result.context_map["active_hypotheses"]) <= 2
 
 def test_print_trace() -> None:
     field = build_diverged_field()

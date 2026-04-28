@@ -46,6 +46,12 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Aggiunti test pytest per caricamento replay e failure modes di validazione.
 - Implementato `L1LearningUpdater` come update post-run da replay validati verso `learning_state.json`.
 - Aggiunti test pytest per creazione file stato, reward/penalty, clamp e determinismo.
+- Implementati `BaselineRunner` e `BenchmarkRunner` per confrontare pipeline lineare minima e SCR sullo stesso task.
+- Aggiunti test pytest per copia temporanea baseline, benchmark JSON e winner deterministico.
+- Aggiornato `BenchmarkRunner` per usare di default path isolati per run in `.scr/benchmarks/{run_id}/{task_id}.json`.
+- Mantenuta compatibilita piena con `output_path` esplicito.
+- Migliorata `CompetitionUnit` con scoring informativo basato su rilevanza sul codice, tipo di fix e penalita per ipotesi generiche.
+- Il ranking delle ipotesi ora usa `score` calcolato e mantiene massimo 2 ipotesi attive.
 
 ## Inferred Scope
 

@@ -1,0 +1,11 @@
+{
+  "baseline_outcome": "SUCCESS",
+  "baseline_validation_time_ms": 539.335,
+  "scr_hypothesis_count": 8,
+  "scr_outcome": "SUCCESS",
+  "scr_ticks": 6,
+  "scr_validated_hypothesis_count": 2,
+  "scr_validation_time_ms": 1336.764,
+  "task_id": "task_001",
+  "winner": "BASELINE"
+}

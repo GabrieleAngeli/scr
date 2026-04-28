@@ -20,13 +20,13 @@ def build_standardized_field() -> FieldState:
     return standardized_runtime.run(input_runtime.run(field))
 
 
-def test_divergence_generates_at_least_three_hypotheses() -> None:
+def test_divergence_generates_at_least_five_hypotheses() -> None:
     field = build_standardized_field()
     runtime = SCRRuntime(units=[DivergenceUnit()], config=RuntimeConfig(max_ticks=3))
 
     result = runtime.run(field)
 
-    assert len(result.hypothesis_pool) >= 3
+    assert len(result.hypothesis_pool) >= 5
 
 
 def test_divergence_hypotheses_respect_minimum_schema() -> None:
@@ -83,3 +83,28 @@ def test_divergence_trace_is_replayable_with_hypotheses_added() -> None:
     assert event["event_type"] == "unit_delta_applied"
     assert "hypotheses_added" in event["changes"]
     assert len(event["changes"]["hypotheses_added"]) >= 3
+
+
+def test_divergence_hypotheses_are_not_duplicates() -> None:
+    field = build_standardized_field()
+    runtime = SCRRuntime(units=[DivergenceUnit()], config=RuntimeConfig(max_ticks=3))
+
+    result = runtime.run(field)
+    summaries = [str(item["proposed_change_summary"]) for item in result.hypothesis_pool]
+
+    assert len(summaries) == len(set(summaries))
+
+
+def test_divergence_includes_at_least_one_condition_modification_strategy() -> None:
+    field = build_standardized_field()
+    runtime = SCRRuntime(units=[DivergenceUnit()], config=RuntimeConfig(max_ticks=3))
+
+    result = runtime.run(field)
+    condition_related = [
+        hypothesis
+        for hypothesis in result.hypothesis_pool
+        if "condition" in str(hypothesis["suspected_issue"]).lower()
+        or "condition" in str(hypothesis["proposed_change_summary"]).lower()
+    ]
+
+    assert condition_related
