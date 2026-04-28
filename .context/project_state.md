@@ -38,6 +38,8 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Esteso `FieldDelta` con supporto minimale alla sostituzione controllata del `hypothesis_pool`.
 - Implementata `ValidationUnit` con validazione deterministica su copia temporanea del task tramite `pytest`.
 - Aggiunti test pytest per validazione delle sole ipotesi attive, isolamento dei file originali e trace replayable.
+- Implementata `ConsolidationUnit` per determinare `outcome` e `selected_hypothesis` dal risultato della validation.
+- Esteso `FieldState` e `FieldDelta` con supporto minimale a `outcome` e `selected_hypothesis`.
 
 ## Inferred Scope
 

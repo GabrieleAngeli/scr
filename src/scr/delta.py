@@ -15,4 +15,6 @@ class FieldDelta:
     hypotheses_remove: list[str] = field(default_factory=list)
     context_updates: dict[str, Any] = field(default_factory=dict)
     stability_shift: float = 0.0
+    outcome: str | None = None
+    selected_hypothesis: dict[str, Any] | None = None
     trace_events: list[dict[str, Any]] = field(default_factory=list)

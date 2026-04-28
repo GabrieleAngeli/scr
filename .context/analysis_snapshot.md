@@ -50,6 +50,7 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - `DivergenceUnit` usa solo artifact gia presenti nel `context_map`, non applica patch e aggiunge ipotesi minime e serializzabili tramite `FieldDelta`.
 - `CompetitionUnit` aggiorna il `hypothesis_pool` senza eliminare ipotesi, usando un replace esplicito nel delta e una trace replayable con attive e pruned.
 - `ValidationUnit` valida solo le ipotesi attive in una copia temporanea del task e riporta risultati serializzabili nel campo e nella trace.
+- `ConsolidationUnit` deriva l'esito finale senza rieseguire test: `SUCCESS`, `REOPENED` o `FAILED_NO_VALID_HYPOTHESIS`, con selezione esplicita della prima ipotesi passata.
 
 ## Open Questions
 

@@ -67,6 +67,10 @@ class SCRRuntime:
                 if item.get("id") not in set(delta.hypotheses_remove)
             ]
         field.stability_score += delta.stability_shift
+        if delta.outcome is not None:
+            field.outcome = delta.outcome
+        if delta.selected_hypothesis is not None:
+            field.selected_hypothesis = delta.selected_hypothesis
         for event in delta.trace_events:
             normalized_event = {
                 "seq": len(field.trace) + 1,

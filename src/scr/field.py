@@ -16,3 +16,5 @@ class FieldState:
     activation_levels: dict[str, float] = field(default_factory=dict)
     trace: list[dict[str, Any]] = field(default_factory=list)
     tick: int = 0
+    outcome: str | None = None
+    selected_hypothesis: dict[str, Any] | None = None
