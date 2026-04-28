@@ -34,6 +34,10 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Aggiunto `.gitignore` standard per Python, cache test e stato locale VS Code.
 - Implementata `DivergenceUnit` per generare almeno 3 ipotesi serializzabili nel `hypothesis_pool`.
 - Aggiunti test pytest dedicati a schema ipotesi, target file, immutabilita dei file e trace replayable.
+- Implementata `CompetitionUnit` per ordinare le ipotesi per confidence, mantenerne massimo 2 attive e marcare le restanti come `pruned`.
+- Esteso `FieldDelta` con supporto minimale alla sostituzione controllata del `hypothesis_pool`.
+- Implementata `ValidationUnit` con validazione deterministica su copia temporanea del task tramite `pytest`.
+- Aggiunti test pytest per validazione delle sole ipotesi attive, isolamento dei file originali e trace replayable.
 
 ## Inferred Scope
 

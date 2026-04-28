@@ -57,6 +57,8 @@ class SCRRuntime:
         field.salience_map.update(delta.salience_updates)
         field.tension_map.update(delta.tension_updates)
         field.energy_map.update(delta.energy_updates)
+        if delta.hypotheses_replace is not None:
+            field.hypothesis_pool = list(delta.hypotheses_replace)
         field.hypothesis_pool.extend(delta.hypotheses_add)
         if delta.hypotheses_remove:
             field.hypothesis_pool = [

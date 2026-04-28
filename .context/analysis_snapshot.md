@@ -48,6 +48,8 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - `StandardizationUnit` opera solo su `FieldState` gia popolato, produce un `FieldDelta` con artifact normalizzati e non modifica i file sorgenti.
 - Il repo ora ignora cache Python, artefatti di build e stato locale non essenziale di VS Code, mantenendo versionati i file workspace utili ai test.
 - `DivergenceUnit` usa solo artifact gia presenti nel `context_map`, non applica patch e aggiunge ipotesi minime e serializzabili tramite `FieldDelta`.
+- `CompetitionUnit` aggiorna il `hypothesis_pool` senza eliminare ipotesi, usando un replace esplicito nel delta e una trace replayable con attive e pruned.
+- `ValidationUnit` valida solo le ipotesi attive in una copia temporanea del task e riporta risultati serializzabili nel campo e nella trace.
 
 ## Open Questions
 
