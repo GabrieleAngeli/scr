@@ -40,6 +40,8 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Aggiunti test pytest per validazione delle sole ipotesi attive, isolamento dei file originali e trace replayable.
 - Implementata `ConsolidationUnit` per determinare `outcome` e `selected_hypothesis` dal risultato della validation.
 - Esteso `FieldState` e `FieldDelta` con supporto minimale a `outcome` e `selected_hypothesis`.
+- Implementato `ReplayRecorder` per serializzare una run completa in `.scr/runs/{run_id}.json`.
+- Aggiunti test pytest per file JSON replay, serializzabilita, trace, outcome e selected hypothesis.
 
 ## Inferred Scope
 
