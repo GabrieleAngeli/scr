@@ -56,6 +56,8 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - `L1LearningUpdater` opera solo post-run, usando replay validati per aggiornare uno stato locale deterministico senza modificare runtime o unit durante la run.
 - `BaselineRunner` resta fuori dal modello SCR e usa una strategia deterministica minimale su copia temporanea; `BenchmarkRunner` confronta esiti e metriche SCR/baseline in un JSON separato.
 - Il salvataggio benchmark ora isola ogni esecuzione in una directory con `run_id`, evitando sovrascritture tra run diverse quando non viene passato un `output_path` esplicito.
+- Il benchmark ora include anche `reference_model_result` da JSON statico, senza integrare LLM reali, e produce una sezione `comparison` mantenendo i campi legacy top-level.
+- `ApplicationThreadBenchmark` misura il valore SCR su un thread applicativo completo, con delta di quality/cost/value rispetto alla baseline, senza alterare benchmark o unit esistenti.
 - `CompetitionUnit` non ranka piu solo per confidence: aggiunge uno score derivato da arithmetic match, allineamento tra issue e codice, semplicita del fix e penalizzazione della genericita.
 
 ## Open Questions

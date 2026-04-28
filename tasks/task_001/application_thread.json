@@ -1,0 +1,26 @@
+{
+  "thread_id": "thread_task_001",
+  "request": "Fix the add logic while preserving behavior across positive and negative values.",
+  "expected_outcome": "SUCCESS",
+  "required_competences": [
+    "input_structuring",
+    "standardization",
+    "divergence",
+    "competition",
+    "validation",
+    "consolidation"
+  ],
+  "input_artifacts": [
+    "bug.py",
+    "test_bug.py",
+    "meta.txt"
+  ],
+  "constraints": [
+    "Do not modify original task files",
+    "Use deterministic validation"
+  ],
+  "success_criteria": [
+    "Tests pass on temporary copy",
+    "Final outcome is SUCCESS"
+  ]
+}

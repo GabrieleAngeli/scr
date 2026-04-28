@@ -1,5 +1,6 @@
 """Segregated Competence Runtime package."""
 
+from .application_benchmark import ApplicationThread, ApplicationThreadBenchmark
 from .baseline import BaselineRunner
 from .benchmark import BenchmarkRunner
 from .delta import FieldDelta
@@ -9,6 +10,8 @@ from .replay import ReplayLoader, ReplayRecorder, ReplayValidator
 from .runtime import SCRRuntime, RuntimeConfig
 
 __all__ = [
+    "ApplicationThread",
+    "ApplicationThreadBenchmark",
     "BaselineRunner",
     "BenchmarkRunner",
     "FieldDelta",

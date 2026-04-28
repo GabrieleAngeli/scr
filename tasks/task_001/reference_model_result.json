@@ -1,0 +1,15 @@
+{
+  "task_id": "task_001",
+  "outcome": "SUCCESS",
+  "quality_score": 0.95,
+  "resource_cost_score": 4.0,
+  "storage_footprint_estimate": 4096,
+  "activated_competences": [
+    "reasoning",
+    "code_repair",
+    "test_awareness"
+  ],
+  "unused_competences": [
+    "tool_use"
+  ]
+}

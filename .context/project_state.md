@@ -50,6 +50,9 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Aggiunti test pytest per copia temporanea baseline, benchmark JSON e winner deterministico.
 - Aggiornato `BenchmarkRunner` per usare di default path isolati per run in `.scr/benchmarks/{run_id}/{task_id}.json`.
 - Mantenuta compatibilita piena con `output_path` esplicito.
+- Esteso `BenchmarkRunner` a un confronto a tre livelli: baseline, SCR e reference model caricato da JSON.
+- Aggiunte metriche comparative: quality, cost, storage footprint, competenze attivate/non usate ed efficiency score.
+- Introdotto `ApplicationThreadBenchmark` separato da `BenchmarkRunner`, con modello `ApplicationThread` e metriche orientate al valore su thread applicativi.
 - Migliorata `CompetitionUnit` con scoring informativo basato su rilevanza sul codice, tipo di fix e penalita per ipotesi generiche.
 - Il ranking delle ipotesi ora usa `score` calcolato e mantiene massimo 2 ipotesi attive.
 

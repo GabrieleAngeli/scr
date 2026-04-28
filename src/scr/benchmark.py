@@ -28,6 +28,11 @@ class BenchmarkRunner:
 
         scr_field, scr_validation_time_ms = self._run_scr(task_dir, task_id)
         baseline_result = self.baseline_runner.run(task_dir)
+        reference_model_result = self._load_reference_model_result(task_dir)
+        scr_result = self._build_scr_result(scr_field, scr_validation_time_ms)
+        baseline_section = self._build_baseline_result(baseline_result)
+        reference_section = self._build_reference_result(reference_model_result)
+        comparison = self._build_comparison(scr_result, baseline_section, reference_section)
 
         benchmark_result = {
             "task_id": task_id,
@@ -38,12 +43,11 @@ class BenchmarkRunner:
             "scr_validated_hypothesis_count": len(scr_field.context_map.get("validation_results", [])),
             "scr_validation_time_ms": scr_validation_time_ms,
             "baseline_validation_time_ms": baseline_result["validation_time_ms"],
-            "winner": self._determine_winner(
-                scr_outcome=str(scr_field.outcome),
-                baseline_outcome=str(baseline_result["outcome"]),
-                scr_validation_time_ms=scr_validation_time_ms,
-                baseline_validation_time_ms=float(baseline_result["validation_time_ms"]),
-            ),
+            "winner": comparison["winner"],
+            "baseline_result": baseline_section,
+            "scr_result": scr_result,
+            "reference_model_result": reference_section,
+            "comparison": comparison,
         }
 
         result_path.parent.mkdir(parents=True, exist_ok=True)
@@ -73,21 +77,137 @@ class BenchmarkRunner:
         return field, validation_time_ms
 
     @staticmethod
-    def _determine_winner(
-        scr_outcome: str,
-        baseline_outcome: str,
-        scr_validation_time_ms: float,
-        baseline_validation_time_ms: float,
-    ) -> str:
-        if scr_outcome == "SUCCESS" and baseline_outcome != "SUCCESS":
-            return "SCR"
-        if baseline_outcome == "SUCCESS" and scr_outcome != "SUCCESS":
-            return "BASELINE"
-        if scr_validation_time_ms <= baseline_validation_time_ms:
-            return "SCR"
-        return "BASELINE"
-
-    @staticmethod
     def _build_default_output_path(task_id: str) -> Path:
         run_id = datetime.now(timezone.utc).strftime("run_%Y%m%d_%H%M%S_%f")
         return Path(".scr") / "benchmarks" / run_id / f"{task_id}.json"
+
+    @staticmethod
+    def _load_reference_model_result(task_dir: Path) -> dict:
+        reference_path = task_dir / "reference_model_result.json"
+        if reference_path.exists():
+            payload = json.loads(reference_path.read_text(encoding="utf-8"))
+            payload.setdefault("task_id", task_dir.name)
+            return payload
+        return {
+            "task_id": task_dir.name,
+            "outcome": "FAILED",
+            "quality_score": 0.0,
+            "resource_cost_score": 1.0,
+            "storage_footprint_estimate": 0,
+            "activated_competences": [],
+            "unused_competences": [],
+        }
+
+    @staticmethod
+    def _build_scr_result(field: FieldState, validation_time_ms: float) -> dict:
+        activated_competences = BenchmarkRunner._extract_activated_competences(field.trace)
+        unused_competences = BenchmarkRunner._compute_unused_competences(activated_competences)
+        quality_score = BenchmarkRunner._quality_score_from_outcome(str(field.outcome))
+        resource_cost_score = round(
+            1.0
+            + (field.tick * 0.15)
+            + (len(field.context_map.get("validation_results", [])) * 0.35)
+            + (len(activated_competences) * 0.1),
+            4,
+        )
+        storage_footprint_estimate = len(json.dumps(field.trace)) + len(json.dumps(field.hypothesis_pool))
+        efficiency_score = round(quality_score / resource_cost_score, 4) if resource_cost_score else 0.0
+        return {
+            "outcome": field.outcome,
+            "quality_score": quality_score,
+            "resource_cost_score": resource_cost_score,
+            "storage_footprint_estimate": storage_footprint_estimate,
+            "activated_competences": activated_competences,
+            "unused_competences": unused_competences,
+            "efficiency_score": efficiency_score,
+            "ticks": field.tick,
+            "hypothesis_count": len(field.hypothesis_pool),
+            "validated_hypothesis_count": len(field.context_map.get("validation_results", [])),
+            "validation_time_ms": validation_time_ms,
+        }
+
+    @staticmethod
+    def _build_baseline_result(result: dict) -> dict:
+        quality_score = BenchmarkRunner._quality_score_from_outcome(str(result["outcome"]))
+        resource_cost_score = 1.2
+        storage_footprint_estimate = len(result.get("stdout", "")) + len(result.get("stderr", ""))
+        return {
+            "outcome": result["outcome"],
+            "quality_score": quality_score,
+            "resource_cost_score": resource_cost_score,
+            "storage_footprint_estimate": storage_footprint_estimate,
+            "activated_competences": ["baseline_runner"],
+            "unused_competences": [],
+            "efficiency_score": round(quality_score / resource_cost_score, 4),
+            "validation_time_ms": result["validation_time_ms"],
+        }
+
+    @staticmethod
+    def _build_reference_result(result: dict) -> dict:
+        quality_score = float(result.get("quality_score", 0.0))
+        resource_cost_score = float(result.get("resource_cost_score", 1.0))
+        efficiency_score = round(quality_score / resource_cost_score, 4) if resource_cost_score else 0.0
+        return {
+            "task_id": result.get("task_id"),
+            "outcome": result.get("outcome"),
+            "quality_score": quality_score,
+            "resource_cost_score": resource_cost_score,
+            "storage_footprint_estimate": result.get("storage_footprint_estimate", 0),
+            "activated_competences": result.get("activated_competences", []),
+            "unused_competences": result.get("unused_competences", []),
+            "efficiency_score": efficiency_score,
+        }
+
+    @staticmethod
+    def _build_comparison(scr_result: dict, baseline_result: dict, reference_result: dict) -> dict:
+        contenders = {
+            "SCR": scr_result,
+            "BASELINE": baseline_result,
+            "REFERENCE_MODEL": reference_result,
+        }
+        winner = max(
+            contenders.items(),
+            key=lambda item: (
+                float(item[1].get("quality_score", 0.0)),
+                float(item[1].get("efficiency_score", 0.0)),
+                -float(item[1].get("resource_cost_score", 0.0)),
+            ),
+        )[0]
+        return {
+            "winner": winner,
+            "scores": {
+                "SCR": scr_result["efficiency_score"],
+                "BASELINE": baseline_result["efficiency_score"],
+                "REFERENCE_MODEL": reference_result["efficiency_score"],
+            },
+        }
+
+    @staticmethod
+    def _extract_activated_competences(trace: list[dict]) -> list[str]:
+        seen: list[str] = []
+        for entry in trace:
+            unit = str(entry.get("unit", ""))
+            if not unit or unit == "runtime" or unit in seen:
+                continue
+            seen.append(unit)
+        return seen
+
+    @staticmethod
+    def _compute_unused_competences(activated_competences: list[str]) -> list[str]:
+        known = [
+            "input_structuring",
+            "standardization",
+            "divergence",
+            "competition",
+            "validation",
+            "consolidation",
+        ]
+        return [name for name in known if name not in activated_competences]
+
+    @staticmethod
+    def _quality_score_from_outcome(outcome: str) -> float:
+        if outcome == "SUCCESS":
+            return 1.0
+        if outcome == "REOPENED":
+            return 0.4
+        return 0.0
