@@ -37,6 +37,7 @@ class InputStructuringUnit(CompetenceUnit):
         bug_text = bug_file.read_text(encoding="utf-8")
         test_text = test_file.read_text(encoding="utf-8")
         meta_text = meta_file.read_text(encoding="utf-8") if meta_file.exists() else ""
+        meta_present = bool(meta_text.strip())
 
         expected_failure = self._extract_expected_failure(meta_text)
 
@@ -66,12 +67,13 @@ class InputStructuringUnit(CompetenceUnit):
             {
                 "tick": field.tick,
                 "unit": self.name,
+                "event_type": "unit_delta_applied",
                 "reason": "task_signal contains task_id and task_path",
                 "input_summary": {
                     "task_id": task_id,
                     "task_path": str(task_path),
                     "files_detected": ["bug.py", "test_bug.py", "meta.txt"],
-                    "expected_failure_present": bool(expected_failure),
+                    "expected_failure_present": meta_present,
                 },
                 "changes": {
                     "context_keys": sorted(context_updates.keys()),

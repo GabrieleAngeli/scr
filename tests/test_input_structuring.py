@@ -88,6 +88,7 @@ def test_runtime_applies_input_structuring_delta_to_field() -> None:
     }
     assert result.activation_levels["input_structuring"] == 1.0
     assert result.trace[0]["unit"] == "runtime"
+    assert result.trace[0]["event_type"] == "tick_start"
 
 
 def test_input_structuring_trace_is_semantically_sufficient_for_replay() -> None:
@@ -101,11 +102,12 @@ def test_input_structuring_trace_is_semantically_sufficient_for_replay() -> None
     assert len(input_events) == 1
 
     event = input_events[0]
-    assert set(event) >= {"seq", "tick", "unit", "reason", "input_summary", "changes"}
+    assert set(event) >= {"seq", "tick", "unit", "event_type", "reason", "input_summary", "changes"}
     assert isinstance(event["seq"], int)
     assert event["seq"] >= 1
     assert event["tick"] == 1
     assert event["unit"] == "input_structuring"
+    assert event["event_type"] == "unit_delta_applied"
     assert event["reason"] == "task_signal contains task_id and task_path"
     assert event["input_summary"]["task_id"] == "task_001"
     assert event["input_summary"]["files_detected"] == ["bug.py", "test_bug.py", "meta.txt"]
@@ -138,12 +140,14 @@ def test_trace_structure_is_replayable(field_after_run):
     assert "seq" in entry
     assert "tick" in entry
     assert "unit" in entry
+    assert "event_type" in entry
     assert "reason" in entry
     assert "input_summary" in entry
     assert "changes" in entry
 
     # semantica minima
     assert entry["unit"] == "input_structuring"
+    assert entry["event_type"] == "unit_delta_applied"
     assert isinstance(entry["changes"], dict)
     assert isinstance(entry["input_summary"], dict)
 

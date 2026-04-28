@@ -27,6 +27,8 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Aggiunto test semantico sui campi minimi di trace richiesti.
 - Aggiunta configurazione VS Code per discovery ed esecuzione test pytest.
 - Aggiunto test esplicito di serializzabilita JSON del `FieldState`.
+- Corretto `expected_failure_present`: ora riflette la presenza di `meta.txt` non vuoto.
+- Aggiunto `event_type` agli eventi trace di runtime e InputStructuringUnit.
 
 ## Inferred Scope
 
