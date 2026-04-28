@@ -42,6 +42,8 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Esteso `FieldState` e `FieldDelta` con supporto minimale a `outcome` e `selected_hypothesis`.
 - Implementato `ReplayRecorder` per serializzare una run completa in `.scr/runs/{run_id}.json`.
 - Aggiunti test pytest per file JSON replay, serializzabilita, trace, outcome e selected hypothesis.
+- Implementati `ReplayLoader` e `ReplayValidator` per caricare replay JSON e verificarne la coerenza minima.
+- Aggiunti test pytest per caricamento replay e failure modes di validazione.
 
 ## Inferred Scope
 

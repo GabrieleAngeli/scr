@@ -2,7 +2,15 @@
 
 from .delta import FieldDelta
 from .field import FieldState
-from .replay import ReplayRecorder
+from .replay import ReplayLoader, ReplayRecorder, ReplayValidator
 from .runtime import SCRRuntime, RuntimeConfig
 
-__all__ = ["FieldDelta", "FieldState", "ReplayRecorder", "RuntimeConfig", "SCRRuntime"]
+__all__ = [
+    "FieldDelta",
+    "FieldState",
+    "ReplayLoader",
+    "ReplayRecorder",
+    "ReplayValidator",
+    "RuntimeConfig",
+    "SCRRuntime",
+]

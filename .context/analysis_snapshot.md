@@ -52,6 +52,7 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - `ValidationUnit` valida solo le ipotesi attive in una copia temporanea del task e riporta risultati serializzabili nel campo e nella trace.
 - `ConsolidationUnit` deriva l'esito finale senza rieseguire test: `SUCCESS`, `REOPENED` o `FAILED_NO_VALID_HYPOTHESIS`, con selezione esplicita della prima ipotesi passata.
 - `ReplayRecorder` e separato dal runtime decisionale e persiste solo lo stato finale necessario al replay in formato JSON.
+- `ReplayLoader` e `ReplayValidator` restano fuori dal runtime: leggono e controllano replay esistenti senza rieseguire la pipeline o alterare il campo.
 
 ## Open Questions
 
