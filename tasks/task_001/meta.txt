@@ -1,0 +1,2 @@
+expected_failure: wrong operator in add
+hint: result should sum inputs

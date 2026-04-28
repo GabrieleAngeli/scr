@@ -1,0 +1,55 @@
+# Project State
+
+Date: 2026-04-28
+Project: Segregated Competence Runtime (SCR) PoC
+Status: InputStructuringUnit implemented
+
+## Current Focus
+
+Allineamento all'ADR con implementazione della sola InputStructuringUnit.
+
+## Completed
+
+- Analizzato il documento `SCR_POC_REQUIREMENTS.md`.
+- Verificato che il workspace contiene al momento solo il file requisiti.
+- Identificata la necessita di una memoria di progetto persistente per multi-scope LLM.
+- Creata la cartella `.context`.
+- Definita una architettura V0 operativa in `ARCHITECTURE_V0.md`.
+- Letti `SCR_CODEX_IMPLEMENTATION_PACK.md` e `ADR_0001_FIELD_BASED_COMPETENCE_RUNTIME.md`.
+- Riallineato il codice al contratto `FieldState -> FieldDelta`.
+- Implementati `FieldState`, `FieldDelta`, runtime minimale e `InputStructuringUnit`.
+- Aggiunto task demo `tasks/task_001`.
+- Aggiunti test pytest per delta e applicazione al campo.
+- Aggiunto README breve con comando di esecuzione.
+- Installato `pytest` nell'ambiente locale Python 3.9.
+- Eseguiti test con esito verde: `2 passed`.
+- Rafforzato il formato trace di `InputStructuringUnit` per replay/debug futuro.
+- Aggiunto test semantico sui campi minimi di trace richiesti.
+- Aggiunta configurazione VS Code per discovery ed esecuzione test pytest.
+- Aggiunto test esplicito di serializzabilita JSON del `FieldState`.
+
+## Inferred Scope
+
+- PoC Python 3.11+ per micro bug fixing su task con test reali.
+- Runtime stateful a tick con campo condiviso.
+- Pipeline base: activation, divergence, competition, validation, consolidation.
+- Benchmark richiesto contro baseline lineare.
+
+## Open Decisions
+
+- Estensione del runtime a ulteriori unita oltre InputStructuring.
+- Politica di normalizzazione per `meta.txt`.
+- Struttura definitiva dei trace event per replay futuro.
+- Definizione di energy, tension e stability quando entreranno altre unita.
+
+## Next Suggested Steps
+
+1. Se richiesto, implementare la prossima unita mantenendo il protocollo a delta.
+2. Introdurre loader dedicato del task quando servira una CLI.
+3. Valutare riallineamento a Python 3.11 quando l'ambiente lo rendera disponibile.
+
+## Assumptions
+
+- Il focus immediato e la sola InputStructuringUnit.
+- Learning, divergence e validation restano fuori scope.
+- I test attuali girano su Python 3.9 locale, quindi il codice evita costrutti non compatibili come `dataclass(slots=True)`.
