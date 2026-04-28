@@ -1,0 +1,3 @@
+expected_failure: positive updates overwrite accumulated state instead of incrementing it
+hint: inspect state mutation and accumulation semantics
+required_competences: standardization, divergence

@@ -53,6 +53,8 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Esteso `BenchmarkRunner` a un confronto a tre livelli: baseline, SCR e reference model caricato da JSON.
 - Aggiunte metriche comparative: quality, cost, storage footprint, competenze attivate/non usate ed efficiency score.
 - Introdotto `ApplicationThreadBenchmark` separato da `BenchmarkRunner`, con modello `ApplicationThread` e metriche orientate al valore su thread applicativi.
+- Creati 3 task benchmark complessi: `task_multi_branch_logic`, `task_network_retry_logic`, `task_stateful_computation`.
+- Ogni task include `bug.py`, `test_bug.py` e `meta.txt` pensati per mettere in difficolta una baseline lineare.
 - Migliorata `CompetitionUnit` con scoring informativo basato su rilevanza sul codice, tipo di fix e penalita per ipotesi generiche.
 - Il ranking delle ipotesi ora usa `score` calcolato e mantiene massimo 2 ipotesi attive.
 

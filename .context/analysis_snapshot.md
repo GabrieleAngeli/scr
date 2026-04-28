@@ -58,6 +58,7 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - Il salvataggio benchmark ora isola ogni esecuzione in una directory con `run_id`, evitando sovrascritture tra run diverse quando non viene passato un `output_path` esplicito.
 - Il benchmark ora include anche `reference_model_result` da JSON statico, senza integrare LLM reali, e produce una sezione `comparison` mantenendo i campi legacy top-level.
 - `ApplicationThreadBenchmark` misura il valore SCR su un thread applicativo completo, con delta di quality/cost/value rispetto alla baseline, senza alterare benchmark o unit esistenti.
+- Il corpus task ora include scenari piu complessi di bug logici: rami annidati, retry/timeout e stato condiviso, utili per benchmark oltre il micro-fix aritmetico.
 - `CompetitionUnit` non ranka piu solo per confidence: aggiunge uno score derivato da arithmetic match, allineamento tra issue e codice, semplicita del fix e penalizzazione della genericita.
 
 ## Open Questions

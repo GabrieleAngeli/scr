@@ -1,0 +1,3 @@
+expected_failure: nested branch for high-value members with coupon returns too small a discount
+hint: inspect branch ordering and combined conditions
+required_competences: standardization, divergence

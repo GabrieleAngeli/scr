@@ -1,0 +1,3 @@
+expected_failure: retry loop stops after first timeout instead of retrying until retries are exhausted
+hint: inspect timeout handling and retry continuation
+required_competences: input_structuring, standardization, divergence
