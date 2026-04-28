@@ -29,6 +29,9 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Aggiunto test esplicito di serializzabilita JSON del `FieldState`.
 - Corretto `expected_failure_present`: ora riflette la presenza di `meta.txt` non vuoto.
 - Aggiunto `event_type` agli eventi trace di runtime e InputStructuringUnit.
+- Implementata `StandardizationUnit` come normalizzazione del `context_map` gia popolato.
+- Aggiunti test pytest mirati per artifact detection, trace e immutabilita dei file sorgenti.
+- Aggiunto `.gitignore` standard per Python, cache test e stato locale VS Code.
 
 ## Inferred Scope
 

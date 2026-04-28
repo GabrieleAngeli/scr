@@ -45,6 +45,8 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - Aggiunti file `.vscode` per eseguire i test dal pannello Testing o Run and Debug di VS Code.
 - I test ora dimostrano anche che il `FieldState` risultante e serializzabile in JSON via `dataclasses.asdict`.
 - La trace distingue ora semanticamente l'inizio tick (`tick_start`) dall'applicazione delta unita (`unit_delta_applied`).
+- `StandardizationUnit` opera solo su `FieldState` gia popolato, produce un `FieldDelta` con artifact normalizzati e non modifica i file sorgenti.
+- Il repo ora ignora cache Python, artefatti di build e stato locale non essenziale di VS Code, mantenendo versionati i file workspace utili ai test.
 
 ## Open Questions
 
