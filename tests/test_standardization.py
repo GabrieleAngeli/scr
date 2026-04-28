@@ -5,7 +5,6 @@ from scr.runtime import RuntimeConfig, SCRRuntime
 from scr.units.input_structuring import InputStructuringUnit
 from scr.units.standardization import StandardizationUnit
 
-
 def build_populated_field() -> FieldState:
     task_path = Path("tasks/task_001").resolve()
     input_runtime = SCRRuntime(units=[InputStructuringUnit()])
@@ -75,3 +74,12 @@ def test_standardization_does_not_modify_original_files() -> None:
     assert (task_path / "bug.py").read_text(encoding="utf-8") == original_bug
     assert (task_path / "test_bug.py").read_text(encoding="utf-8") == original_test
     assert (task_path / "meta.txt").read_text(encoding="utf-8") == original_meta
+
+def test_print_standardization_trace() -> None:
+    field = build_populated_field()
+    runtime = SCRRuntime(units=[StandardizationUnit()], config=RuntimeConfig(max_ticks=2))
+    result = runtime.run(field)
+
+    print("\nSTANDARDIZATION TRACE:")
+    for entry in result.trace:
+        print(entry)

@@ -47,6 +47,7 @@ Source: `SCR_POC_REQUIREMENTS.md`
 - La trace distingue ora semanticamente l'inizio tick (`tick_start`) dall'applicazione delta unita (`unit_delta_applied`).
 - `StandardizationUnit` opera solo su `FieldState` gia popolato, produce un `FieldDelta` con artifact normalizzati e non modifica i file sorgenti.
 - Il repo ora ignora cache Python, artefatti di build e stato locale non essenziale di VS Code, mantenendo versionati i file workspace utili ai test.
+- `DivergenceUnit` usa solo artifact gia presenti nel `context_map`, non applica patch e aggiunge ipotesi minime e serializzabili tramite `FieldDelta`.
 
 ## Open Questions
 

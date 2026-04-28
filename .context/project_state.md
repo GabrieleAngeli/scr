@@ -32,6 +32,8 @@ Allineamento all'ADR con implementazione della sola InputStructuringUnit.
 - Implementata `StandardizationUnit` come normalizzazione del `context_map` gia popolato.
 - Aggiunti test pytest mirati per artifact detection, trace e immutabilita dei file sorgenti.
 - Aggiunto `.gitignore` standard per Python, cache test e stato locale VS Code.
+- Implementata `DivergenceUnit` per generare almeno 3 ipotesi serializzabili nel `hypothesis_pool`.
+- Aggiunti test pytest dedicati a schema ipotesi, target file, immutabilita dei file e trace replayable.
 
 ## Inferred Scope
 
