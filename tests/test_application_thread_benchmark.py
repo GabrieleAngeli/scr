@@ -64,3 +64,22 @@ def test_application_thread_benchmark_calculates_deltas(tmp_path) -> None:
     assert "quality_delta" in payload
     assert "cost_delta" in payload
     assert "value_delta" in payload
+
+
+def test_application_thread_benchmark_supports_legacy_mode(tmp_path) -> None:
+    benchmark = ApplicationThreadBenchmark(output_path=tmp_path / "thread_benchmark.json", scr_mode="legacy_pipeline")
+    result_path = benchmark.run(
+        Path("tasks/task_001/application_thread.json").resolve(),
+        Path("tasks/task_001").resolve(),
+    )
+    payload = json.loads(result_path.read_text(encoding="utf-8"))
+    assert "scr_thread_result" in payload
+
+
+def test_application_thread_benchmark_rejects_unknown_mode() -> None:
+    try:
+        ApplicationThreadBenchmark(scr_mode="bad")
+    except ValueError as exc:
+        assert "scr_mode must be either" in str(exc)
+        return
+    raise AssertionError("Expected ValueError for invalid scr_mode")

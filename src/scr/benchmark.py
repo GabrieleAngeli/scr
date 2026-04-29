@@ -17,16 +17,29 @@ from .units.validation import ValidationUnit
 
 
 class BenchmarkRunner:
-    def __init__(self, output_path: str | Path | None = None) -> None:
+    ALLOWED_SCR_MODES = {"unified", "legacy_pipeline"}
+
+    def __init__(self, output_path: str | Path | None = None, scr_mode: str = "unified") -> None:
         self.output_path = Path(output_path) if output_path is not None else None
         self.baseline_runner = BaselineRunner()
+        if scr_mode not in self.ALLOWED_SCR_MODES:
+            raise ValueError("scr_mode must be either 'unified' or 'legacy_pipeline'")
+        self.scr_mode = scr_mode
 
     def run(self, task_path: str | Path) -> Path:
         task_dir = Path(task_path)
         task_id = task_dir.name
         result_path = self.output_path or self._build_default_output_path(task_id)
 
-        scr_field, scr_validation_time_ms = self._run_scr(task_dir, task_id)
+        initial_field = FieldState(task_signal={"task_id": task_id, "task_path": str(task_dir)})
+        kpi_segmentation = self._build_kpi_segmentation(initial_field)
+        run_field = FieldState(task_signal=dict(initial_field.task_signal))
+        scr_field, scr_validation_time_ms = self._run_scr(
+            task_dir,
+            task_id,
+            mode=self.scr_mode,
+            initial_field=run_field,
+        )
         baseline_result = self.baseline_runner.run(task_dir)
         reference_model_result = self._load_reference_model_result(task_dir)
         scr_result = self._build_scr_result(scr_field, scr_validation_time_ms)
@@ -44,10 +57,13 @@ class BenchmarkRunner:
             "scr_validation_time_ms": scr_validation_time_ms,
             "baseline_validation_time_ms": baseline_result["validation_time_ms"],
             "winner": comparison["winner"],
+            "scr_mode": self.scr_mode,
+            "scr_execution_model": "single_runtime" if self.scr_mode == "unified" else "staged_runtimes",
             "baseline_result": baseline_section,
             "scr_result": scr_result,
             "reference_model_result": reference_section,
             "comparison": comparison,
+            "kpi_segmentation": kpi_segmentation,
         }
 
         result_path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,8 +71,48 @@ class BenchmarkRunner:
         return result_path
 
     @staticmethod
-    def _run_scr(task_dir: Path, task_id: str) -> tuple[FieldState, float]:
-        field = FieldState(task_signal={"task_id": task_id, "task_path": str(task_dir)})
+    def _run_scr(
+        task_dir: Path,
+        task_id: str,
+        mode: str = "unified",
+        initial_field: FieldState | None = None,
+    ) -> tuple[FieldState, float]:
+        if mode not in BenchmarkRunner.ALLOWED_SCR_MODES:
+            raise ValueError("mode must be either 'unified' or 'legacy_pipeline'")
+        if mode == "legacy_pipeline":
+            return BenchmarkRunner._run_scr_legacy_pipeline(task_dir, task_id, initial_field=initial_field)
+        return BenchmarkRunner._run_scr_unified(task_dir, task_id, initial_field=initial_field)
+
+    @staticmethod
+    def _run_scr_unified(
+        task_dir: Path,
+        task_id: str,
+        initial_field: FieldState | None = None,
+    ) -> tuple[FieldState, float]:
+        field = initial_field or FieldState(task_signal={"task_id": task_id, "task_path": str(task_dir)})
+        runtime = SCRRuntime(
+            units=[
+                InputStructuringUnit(),
+                StandardizationUnit(),
+                DivergenceUnit(),
+                CompetitionUnit(),
+                ValidationUnit(),
+                ConsolidationUnit(),
+            ],
+            config=RuntimeConfig(max_ticks=10),
+        )
+        validation_start = time.perf_counter()
+        field = runtime.run(field)
+        validation_time_ms = round((time.perf_counter() - validation_start) * 1000, 3)
+        return field, validation_time_ms
+
+    @staticmethod
+    def _run_scr_legacy_pipeline(
+        task_dir: Path,
+        task_id: str,
+        initial_field: FieldState | None = None,
+    ) -> tuple[FieldState, float]:
+        field = initial_field or FieldState(task_signal={"task_id": task_id, "task_path": str(task_dir)})
         input_runtime = SCRRuntime(units=[InputStructuringUnit()])
         standardization_runtime = SCRRuntime(units=[StandardizationUnit()], config=RuntimeConfig(max_ticks=2))
         divergence_runtime = SCRRuntime(units=[DivergenceUnit()], config=RuntimeConfig(max_ticks=3))
@@ -211,3 +267,29 @@ class BenchmarkRunner:
         if outcome == "REOPENED":
             return 0.4
         return 0.0
+
+    @staticmethod
+    def _build_kpi_segmentation(field: FieldState) -> dict:
+        profile = BenchmarkRunner._field_profile(field)
+        scenario = "task_fresh" if profile == "fresh_from_zero" else "thread_prestructured"
+        return {
+            "field_profile": profile,
+            "scenario": scenario,
+            "kpi_bucket": f"{scenario}:{profile}",
+        }
+
+    @staticmethod
+    def _field_profile(field: FieldState) -> str:
+        if field.outcome is not None:
+            return "outcome_defined"
+        if "validation_results" in field.context_map:
+            return "post_validation"
+        if field.context_map.get("active_hypotheses"):
+            return "post_competition"
+        if field.hypothesis_pool:
+            return "post_divergence"
+        if field.context_map.get("code_artifact") is not None:
+            return "post_standardization"
+        if field.context_map:
+            return "post_input_structuring"
+        return "fresh_from_zero"
