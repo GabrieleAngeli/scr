@@ -64,3 +64,13 @@ def test_application_thread_benchmark_calculates_deltas(tmp_path) -> None:
     assert "quality_delta" in payload
     assert "cost_delta" in payload
     assert "value_delta" in payload
+
+
+def test_application_thread_benchmark_supports_legacy_mode(tmp_path) -> None:
+    benchmark = ApplicationThreadBenchmark(output_path=tmp_path / "thread_benchmark.json", scr_mode="legacy_pipeline")
+    result_path = benchmark.run(
+        Path("tasks/task_001/application_thread.json").resolve(),
+        Path("tasks/task_001").resolve(),
+    )
+    payload = json.loads(result_path.read_text(encoding="utf-8"))
+    assert "scr_thread_result" in payload
