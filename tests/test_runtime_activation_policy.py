@@ -264,3 +264,43 @@ def test_gating_goes_directly_to_validation_with_active_hypotheses() -> None:
     result = runtime.run(field)
     assert result.tick == 2
     assert selected_units_from_trace(result.trace) == ["validation", "consolidation"]
+
+
+def test_gating_goes_directly_to_consolidation_with_validation_results() -> None:
+    task_path = Path("tasks/task_001").resolve()
+    field = FieldState(
+        task_signal={"task_id": "task_001", "task_path": str(task_path)},
+        context_map={
+            "code_artifact": {"name": "bug.py", "path": str(task_path / "bug.py"), "content": "def add(a,b): return a+b"},
+            "active_hypotheses": ["h1"],
+            "validation_results": [
+                {
+                    "hypothesis_id": "h1",
+                    "passed": True,
+                    "returncode": 0,
+                    "temporary_task_path": str(task_path),
+                    "stdout": "",
+                    "stderr": "",
+                }
+            ]
+        },
+        hypothesis_pool=[{"hypothesis_id": "h1", "status": "validated"}],
+    )
+    runtime = build_all_units_runtime(max_ticks=10)
+
+    result = runtime.run(field)
+    assert result.tick == 1
+    assert selected_units_from_trace(result.trace) == ["consolidation"]
+
+
+def test_gating_does_not_run_when_outcome_is_already_defined() -> None:
+    task_path = Path("tasks/task_001").resolve()
+    field = FieldState(
+        task_signal={"task_id": "task_001", "task_path": str(task_path)},
+        outcome="SUCCESS",
+    )
+    runtime = build_all_units_runtime(max_ticks=10)
+
+    result = runtime.run(field)
+    assert result.tick == 0
+    assert selected_units_from_trace(result.trace) == []
