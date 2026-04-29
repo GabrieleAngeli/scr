@@ -3,6 +3,7 @@ from pathlib import Path
 
 from scr.baseline import BaselineRunner
 from scr.benchmark import BenchmarkRunner
+from scr.field import FieldState
 
 
 def test_baseline_runner_executes_on_temporary_copy() -> None:
@@ -54,6 +55,7 @@ def test_benchmark_result_contains_scr_and_baseline_metrics(tmp_path) -> None:
         "scr_validation_time_ms",
         "baseline_validation_time_ms",
         "winner",
+        "kpi_segmentation",
     }
     assert set(payload) >= expected_keys
     assert payload["scr_mode"] == "unified"
@@ -187,3 +189,31 @@ def test_benchmark_payload_reports_execution_model(tmp_path) -> None:
         .read_text(encoding="utf-8")
     )
     assert legacy_payload["scr_execution_model"] == "staged_runtimes"
+
+
+def test_benchmark_payload_contains_kpi_segmentation(tmp_path) -> None:
+    output_path = tmp_path / "kpi" / "benchmark_result.json"
+    payload = json.loads(BenchmarkRunner(output_path=output_path).run(Path("tasks/task_001").resolve()).read_text(encoding="utf-8"))
+    segmentation = payload["kpi_segmentation"]
+    assert set(segmentation) == {"field_profile", "scenario", "kpi_bucket"}
+    assert segmentation["scenario"] == "task_fresh"
+    assert segmentation["field_profile"] == "fresh_from_zero"
+    assert segmentation["kpi_bucket"] == "task_fresh:fresh_from_zero"
+
+
+def test_field_profile_classification_progression() -> None:
+    assert BenchmarkRunner._field_profile(FieldState(task_signal={})) == "fresh_from_zero"
+    assert BenchmarkRunner._field_profile(FieldState(task_signal={}, context_map={"foo": "bar"})) == "post_input_structuring"
+    assert BenchmarkRunner._field_profile(FieldState(task_signal={}, context_map={"code_artifact": {"path": "bug.py"}})) == "post_standardization"
+    assert BenchmarkRunner._field_profile(FieldState(task_signal={}, hypothesis_pool=[{"hypothesis_id": "h1"}])) == "post_divergence"
+    assert BenchmarkRunner._field_profile(FieldState(task_signal={}, context_map={"active_hypotheses": ["h1"]})) == "post_competition"
+    assert BenchmarkRunner._field_profile(FieldState(task_signal={}, context_map={"validation_results": []})) == "post_validation"
+    assert BenchmarkRunner._field_profile(FieldState(task_signal={}, outcome="SUCCESS")) == "outcome_defined"
+
+
+def test_kpi_segmentation_marks_prestructured_scenarios() -> None:
+    field = FieldState(task_signal={}, context_map={"code_artifact": {"path": "bug.py"}})
+    segmentation = BenchmarkRunner._build_kpi_segmentation(field)
+    assert segmentation["field_profile"] == "post_standardization"
+    assert segmentation["scenario"] == "thread_prestructured"
+    assert segmentation["kpi_bucket"] == "thread_prestructured:post_standardization"
