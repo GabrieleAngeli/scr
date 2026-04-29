@@ -35,6 +35,8 @@ class ApplicationThreadBenchmark:
     def __init__(self, output_path: str | Path | None = None, scr_mode: str = "unified") -> None:
         self.output_path = Path(output_path) if output_path is not None else None
         self.baseline_runner = BaselineRunner()
+        if scr_mode not in BenchmarkRunner.ALLOWED_SCR_MODES:
+            raise ValueError("scr_mode must be either 'unified' or 'legacy_pipeline'")
         self.scr_mode = scr_mode
 
     def load_thread(self, path: str | Path) -> ApplicationThread:

@@ -163,3 +163,27 @@ def test_benchmark_runner_rejects_unknown_mode() -> None:
         assert "scr_mode must be either" in str(exc)
         return
     raise AssertionError("Expected ValueError for invalid scr_mode")
+
+
+def test_run_scr_rejects_unknown_mode() -> None:
+    task_dir = Path("tasks/task_001").resolve()
+    try:
+        BenchmarkRunner._run_scr(task_dir, task_dir.name, mode="bad")
+    except ValueError as exc:
+        assert "mode must be either" in str(exc)
+        return
+    raise AssertionError("Expected ValueError for invalid run mode")
+
+
+def test_benchmark_payload_reports_execution_model(tmp_path) -> None:
+    output_path = tmp_path / "unified" / "benchmark_result.json"
+    payload = json.loads(BenchmarkRunner(output_path=output_path).run(Path("tasks/task_001").resolve()).read_text(encoding="utf-8"))
+    assert payload["scr_execution_model"] == "single_runtime"
+
+    legacy_output = tmp_path / "legacy" / "benchmark_result.json"
+    legacy_payload = json.loads(
+        BenchmarkRunner(output_path=legacy_output, scr_mode="legacy_pipeline")
+        .run(Path("tasks/task_001").resolve())
+        .read_text(encoding="utf-8")
+    )
+    assert legacy_payload["scr_execution_model"] == "staged_runtimes"

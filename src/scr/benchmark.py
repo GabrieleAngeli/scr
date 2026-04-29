@@ -17,10 +17,12 @@ from .units.validation import ValidationUnit
 
 
 class BenchmarkRunner:
+    ALLOWED_SCR_MODES = {"unified", "legacy_pipeline"}
+
     def __init__(self, output_path: str | Path | None = None, scr_mode: str = "unified") -> None:
         self.output_path = Path(output_path) if output_path is not None else None
         self.baseline_runner = BaselineRunner()
-        if scr_mode not in {"unified", "legacy_pipeline"}:
+        if scr_mode not in self.ALLOWED_SCR_MODES:
             raise ValueError("scr_mode must be either 'unified' or 'legacy_pipeline'")
         self.scr_mode = scr_mode
 
@@ -48,6 +50,7 @@ class BenchmarkRunner:
             "baseline_validation_time_ms": baseline_result["validation_time_ms"],
             "winner": comparison["winner"],
             "scr_mode": self.scr_mode,
+            "scr_execution_model": "single_runtime" if self.scr_mode == "unified" else "staged_runtimes",
             "baseline_result": baseline_section,
             "scr_result": scr_result,
             "reference_model_result": reference_section,
@@ -60,6 +63,8 @@ class BenchmarkRunner:
 
     @staticmethod
     def _run_scr(task_dir: Path, task_id: str, mode: str = "unified") -> tuple[FieldState, float]:
+        if mode not in BenchmarkRunner.ALLOWED_SCR_MODES:
+            raise ValueError("mode must be either 'unified' or 'legacy_pipeline'")
         if mode == "legacy_pipeline":
             return BenchmarkRunner._run_scr_legacy_pipeline(task_dir, task_id)
         return BenchmarkRunner._run_scr_unified(task_dir, task_id)

@@ -74,3 +74,12 @@ def test_application_thread_benchmark_supports_legacy_mode(tmp_path) -> None:
     )
     payload = json.loads(result_path.read_text(encoding="utf-8"))
     assert "scr_thread_result" in payload
+
+
+def test_application_thread_benchmark_rejects_unknown_mode() -> None:
+    try:
+        ApplicationThreadBenchmark(scr_mode="bad")
+    except ValueError as exc:
+        assert "scr_mode must be either" in str(exc)
+        return
+    raise AssertionError("Expected ValueError for invalid scr_mode")
