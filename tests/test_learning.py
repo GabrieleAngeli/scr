@@ -1,6 +1,6 @@
 import json
 
-from scr.learning import L1LearningUpdater
+from scr.learning import L1LearningUpdater, LearningRunComparator, ReplayFeatureExtractor
 from scr.replay import ReplayLoader, ReplayRecorder, ReplayValidator
 from tests.test_replay import build_consolidated_field
 
@@ -98,3 +98,26 @@ def test_learning_update_is_deterministic_for_same_replay(tmp_path) -> None:
     right_state = right_updater.update(replay)
 
     assert left_state == right_state
+
+
+def test_replay_feature_extractor_returns_learning_features(tmp_path) -> None:
+    replay = build_valid_replay(tmp_path, run_id="feature-run")
+    features = ReplayFeatureExtractor.extract(replay)
+
+    assert features["outcome"] == replay["outcome"]
+    assert features["total_ticks"] >= 1
+    assert isinstance(features["activated_units"], list)
+    assert "validation_count" in features
+    assert "failed_validations" in features
+
+
+def test_learning_run_comparator_reports_deltas(tmp_path) -> None:
+    before = build_valid_replay(tmp_path, run_id="before-run")
+    after = build_valid_replay(tmp_path, run_id="after-run")
+    after["outcome"] = "SUCCESS"
+
+    comparison = LearningRunComparator.compare(before, after)
+
+    assert set(comparison) == {"before", "after", "delta", "improved"}
+    assert "ticks" in comparison["delta"]
+    assert "failed_validations_reduced" in comparison["improved"]

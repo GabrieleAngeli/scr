@@ -32,9 +32,12 @@ class ApplicationThread:
 
 
 class ApplicationThreadBenchmark:
-    def __init__(self, output_path: str | Path | None = None) -> None:
+    def __init__(self, output_path: str | Path | None = None, scr_mode: str = "unified") -> None:
         self.output_path = Path(output_path) if output_path is not None else None
         self.baseline_runner = BaselineRunner()
+        if scr_mode not in BenchmarkRunner.ALLOWED_SCR_MODES:
+            raise ValueError("scr_mode must be either 'unified' or 'legacy_pipeline'")
+        self.scr_mode = scr_mode
 
     def load_thread(self, path: str | Path) -> ApplicationThread:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -45,7 +48,7 @@ class ApplicationThreadBenchmark:
         task_dir = Path(task_path)
         result_path = self.output_path or self._build_default_output_path(thread.thread_id)
 
-        scr_field, scr_validation_time_ms = BenchmarkRunner._run_scr(task_dir, task_dir.name)
+        scr_field, scr_validation_time_ms = BenchmarkRunner._run_scr(task_dir, task_dir.name, mode=self.scr_mode)
         baseline_result = self.baseline_runner.run(task_dir)
 
         scr_thread_result = self._build_scr_thread_result(thread, scr_field, scr_validation_time_ms)

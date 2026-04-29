@@ -106,3 +106,56 @@ class L1LearningUpdater:
     @staticmethod
     def _clamp_int(value: int, minimum: int, maximum: int) -> int:
         return max(minimum, min(value, maximum))
+
+
+class ReplayFeatureExtractor:
+    @staticmethod
+    def extract(replay: dict) -> dict:
+        trace = replay.get("trace", [])
+        total_ticks = max((int(entry.get("tick", 0)) for entry in trace), default=0)
+        activated_units: list[str] = []
+        for entry in trace:
+            unit = str(entry.get("unit", ""))
+            if unit and unit != "runtime" and unit not in activated_units:
+                activated_units.append(unit)
+
+        validation_results = replay.get("validation_results", [])
+        failed_validations = sum(1 for result in validation_results if not result.get("passed", False))
+        pruned_hypotheses = 0
+        for entry in trace:
+            if entry.get("unit") == "competition":
+                pruned_hypotheses = len(entry.get("changes", {}).get("pruned_hypotheses", []))
+                break
+
+        return {
+            "outcome": replay.get("outcome"),
+            "total_ticks": total_ticks,
+            "activated_units": activated_units,
+            "activated_unit_count": len(activated_units),
+            "validation_count": len(validation_results),
+            "failed_validations": failed_validations,
+            "pruned_hypotheses": pruned_hypotheses,
+            "selected_hypothesis": replay.get("selected_hypothesis"),
+        }
+
+
+class LearningRunComparator:
+    @staticmethod
+    def compare(before_replay: dict, after_replay: dict) -> dict:
+        before = ReplayFeatureExtractor.extract(before_replay)
+        after = ReplayFeatureExtractor.extract(after_replay)
+        return {
+            "before": before,
+            "after": after,
+            "delta": {
+                "ticks": after["total_ticks"] - before["total_ticks"],
+                "failed_validations": after["failed_validations"] - before["failed_validations"],
+                "activated_unit_count": after["activated_unit_count"] - before["activated_unit_count"],
+                "validation_count": after["validation_count"] - before["validation_count"],
+            },
+            "improved": {
+                "ticks_reduced": after["total_ticks"] < before["total_ticks"],
+                "failed_validations_reduced": after["failed_validations"] < before["failed_validations"],
+                "outcome_improved": str(after.get("outcome")) == "SUCCESS" and str(before.get("outcome")) != "SUCCESS",
+            },
+        }
